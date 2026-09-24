@@ -1,0 +1,28 @@
+{
+  "name": "prestock-ai-server",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "tsx src/metrics.test.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.24.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "prestock-ai": "file:..",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "prestock-ai",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently -n server,client -c magenta,cyan \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "start": "npm run start --prefix server"
+  },
+  "devDependencies": { "concurrently": "^9.0.0" }
+}
