@@ -6,15 +6,33 @@ import { PreStock } from '../types';
 
 export function AssetLogo({ asset, size = 36 }: { asset: Pick<PreStock, 'image' | 'symbol'>; size?: number }) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const style = { width: size, height: size };
+  
+  const fallback = (
+    <span style={style} className="grid shrink-0 place-items-center rounded-lg bg-ink text-[11px] font-semibold text-white">
+      {asset.symbol.slice(0, 2)}
+    </span>
+  );
+
   if (!asset.image || failed) {
-    return (
-      <span style={style} className="grid shrink-0 place-items-center rounded-lg bg-ink text-[11px] font-semibold text-white">
-        {asset.symbol.slice(0, 2)}
-      </span>
-    );
+    return fallback;
   }
-  return <img src={asset.image} alt="" style={style} className="shrink-0 rounded-lg border border-line bg-white object-contain" onError={() => setFailed(true)} loading="lazy" />;
+
+  return (
+    <>
+      {!loaded && fallback}
+      <img
+        src={asset.image}
+        alt=""
+        style={{ ...style, display: loaded ? 'block' : 'none' }}
+        className="shrink-0 rounded-lg border border-line bg-white object-contain"
+        onLoad={() => setLoaded(true)}
+        onError={() => setFailed(true)}
+        loading="lazy"
+      />
+    </>
+  );
 }
 
 export function SpreadPill({ value }: { value: number | null }) {
