@@ -69,14 +69,34 @@ npm run test --prefix server
 ## Environment variables
 | File | Variable | Purpose |
 |---|---|---|
-| server/.env | `GEMINI_API_KEY` | Required for AI features |
-| server/.env | `GEMINI_MODEL` | Gemini Free Tier model (default `gemini-3.5-flash`) |
-| server/.env | `SOLANA_RPC_URL` | Use your own RPC for reliable demos |
-| server/.env | `PORT`, `CORS_ORIGIN`, `PRESTOCKS_API_URL` | Optional |
-| client/.env | `VITE_API_BASE`, `VITE_SOLANA_RPC` | Optional |
+| server/.env | `GEMINI_API_KEY` | Required for AI features. Server-side only; never sent to the client. |
+| server/.env | `GEMINI_MODEL` | Gemini model with structured-output support (default `gemini-2.5-flash`, a stable model with a documented free tier) |
+| server/.env | `SOLANA_RPC_URL` | Use your own RPC for reliable demos; the public mainnet-beta endpoint is rate limited |
+| server/.env | `PORT` | Port the Express server listens on |
+| server/.env | `CORS_ORIGIN` | Comma-separated list of allowed frontend origins, e.g. `https://prestock-ai.vercel.app` |
+| server/.env | `PRESTOCKS_API_URL` | Optional override for the PreStocks endpoint |
+| client/.env | `VITE_API_BASE` | Base URL of the backend, e.g. `https://prestock-ai.onrender.com`. Leave empty for local dev (Vite proxies `/api`). |
+| client/.env | `VITE_SOLANA_RPC` | Optional RPC for the wallet-adapter connection |
 
 ## Deployment
-One service: `npm run install:all && npm run build`, then `npm start`. The Express server serves `client/dist` and `/api`. Set the server variables on the host (Render, Railway, Fly). Use `VITE_API_BASE` only if the frontend is hosted separately, and then set `CORS_ORIGIN` to its URL.
+This project is deployed as two separate services:
+
+```
+Browser
+  ↓
+Vercel — React frontend (client/)
+  ↓  fetch("VITE_API_BASE + /api/...")
+Render — Express API (server/)
+  ↓            ↓            ↓
+PreStocks   Gemini API   Solana RPC
+   API
+```
+
+**Backend (Render):** build command `npm install --prefix server && npm run build --prefix server`, start command `npm run start --prefix server`. Set `GEMINI_API_KEY`, `GEMINI_MODEL`, `SOLANA_RPC_URL`, `CORS_ORIGIN=https://prestock-ai.vercel.app` in Render's environment variables. The server calls `app.set('trust proxy', 1)` so `express-rate-limit` sees the real client IP behind Render's reverse proxy, and strips trailing slashes when comparing `CORS_ORIGIN` values.
+
+**Frontend (Vercel):** build command `npm run build --prefix client`, output directory `client/dist`. Set `VITE_API_BASE=https://prestock-ai.onrender.com` in Vercel's environment variables so the client talks to the Render API instead of a same-origin `/api` path.
+
+Alternatively, for a single-service deployment: `npm run install:all && npm run build`, then `npm start`. The Express server will serve `client/dist` and `/api` from one process if `client/dist` exists next to it at runtime; in that case leave `VITE_API_BASE` empty.
 
 ## Limitations
 - No historical prices, so no price charts, returns or risk statistics.
