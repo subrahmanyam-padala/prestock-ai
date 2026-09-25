@@ -51,12 +51,19 @@ async function callGemini<T>(name: string, schema: Schema, data: unknown, task: 
         throw new HttpError('The AI returned an empty response.', 502, 'ai_empty');
     }
 
-    return JSON.parse(response.text) as T;
+    let text = response.text;
+    if (text.startsWith('```')) {
+      text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    }
+    return JSON.parse(text) as T;
   } catch (err: any) {
     if (err instanceof HttpError) throw err;
     console.error('Gemini error', err);
     if (err.status === 429) {
       throw new HttpError('Rate limit exceeded. Please try again later.', 429, 'ai_rate_limit');
+    }
+    if (err.status === 503) {
+      throw new HttpError('The AI model is experiencing high demand. Please try again later.', 503, 'ai_unavailable');
     }
     if (err.status === 401 || err.status === 403) {
       throw new HttpError('Invalid Gemini API key. Check GEMINI_API_KEY in server/.env.', 401, 'ai_unauthorized');
@@ -64,7 +71,7 @@ async function callGemini<T>(name: string, schema: Schema, data: unknown, task: 
     if (err.status === 404) {
       throw new HttpError('Gemini model not found. Check GEMINI_MODEL in server/.env.', 404, 'ai_model_not_found');
     }
-    throw new HttpError('Could not generate the AI report.', 502, 'ai_failed');
+    throw new HttpError(`Could not generate the AI report: ${err.message || 'Unknown error'}`, 502, 'ai_failed');
   }
 }
 

@@ -8,6 +8,7 @@ import { HttpError } from './errors';
 import { router } from './routes';
 
 const app = express();
+app.set('trust proxy', 1); // trust first proxy to allow rate limit to work behind Render/Heroku
 app.disable('x-powered-by');
 app.use(cors({ origin: config.corsOrigins }));
 app.use(express.json({ limit: '50kb' }));
